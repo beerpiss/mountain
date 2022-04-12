@@ -1,32 +1,32 @@
 export interface IGuild {
-  _id: number;
-  roleAdmin?: number;
-  roleBcn?: number;
-  roleFormerBcn?: number;
-  roleKiThuat?: number;
-  roleRaDe?: number;
-  roleNoiDung?: number;
-  roleTruyenThong?: number;
-  roleTrainers?: number;
-  roleTrainees?: number;
-  rolePendingKiThuat?: number;
-  rolePendingRaDe?: number;
-  rolePendingNoiDung?: number;
-  rolePendingTruyenThong?: number;
-  roleCuuKiThuat?: number;
-  roleCuuRaDe?: number;
-  roleCuuNoiDung?: number;
-  roleCuuTruyenThong?: number;
+  _id: string;
+  roleAdmin?: string;
+  roleBcn?: string;
+  roleFormerBcn?: string;
+  roleKiThuat?: string;
+  roleRaDe?: string;
+  roleNoiDung?: string;
+  roleTruyenThong?: string;
+  roleTrainers?: string;
+  roleTrainees?: string;
+  rolePendingKiThuat?: string;
+  rolePendingRaDe?: string;
+  rolePendingNoiDung?: string;
+  rolePendingTruyenThong?: string;
+  roleCuuKiThuat?: string;
+  roleCuuRaDe?: string;
+  roleCuuNoiDung?: string;
+  roleCuuTruyenThong?: string;
 
-  channelSuggestions?: number;
-  channelAdminLog?: number;
-  channelLog?: number;
-  channelBotspam?: number;
-  channelSeeding?: number;
+  channelSuggestions?: string;
+  channelAdminLog?: string;
+  channelLog?: string;
+  channelBotspam?: string;
+  channelSeeding?: string;
 
-  filterExcludedChannels?: number[];
-  filterExcludedGuilds?: number[];
+  filterExcludedChannels?: string[];
+  filterExcludedGuilds?: string[];
 
-  loggingGuildId?: number;
+  loggingGuildId?: string;
   loggingMapping?: Map<string, string>;
 }

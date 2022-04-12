@@ -1,78 +1,73 @@
-import { Level } from 'level';
+import Enmap from 'enmap';
 import Discord from 'discord.js';
 
 /**
- * A {@link DataProvider} implemented with a LevelDB backend. Requires the package [level](https://www.npmjs.com/package/level).
- * This data provider was implemented for level@7.0.1 but any v7 should work.
+ * A data provider implemented with Enmap. Requires [Enmap](https://github.com/eslachance/enmap).
+ * This data provider is implemented for v5 of Enmap.
  */
 class DataProvider {
   /**
-   * The fully resolved path where the LevelDB database will be saved.
+   * The directory where the Enmap database will be stored.
    * @type {string}
-   * @memberof LevelDataProvider
+   * @memberof DataProvider
    */
   public readonly location: string;
 
   /**
-   * The LevelDB instance for this data provider.
-   * @private
-   * @type {(Level<string, any> | null)}
-   * @memberof LevelDataProvider
+   * The name of the SQLite table associated with this DataProvider.
+   * @type {string}
+   * @memberof DataProvider
    */
-  private db: Level<string, any> | null;
+  public readonly tableName: string;
 
   /**
-   * @param location The fully resolved path where the LevelDB database will be saved. This must resolve to a directory.
+   * The Enmap instance for this data provider.
+   * @private
+   * @type {(Enmap<string, any> | null)}
+   * @memberof DataProvider
    */
-  constructor(location: string) {
+  private db: Enmap<string, any> | null;
+
+  /**
+   * @param {string} location The directory where the Enmap database will be stored. This must resolve to a directory.
+   * @param {string} tableName The name of the SQLite table associated with this DataProvider.
+   */
+  constructor(location: string, tableName: string) {
     this.location = location;
+    this.tableName = tableName;
     this.db = null;
   }
 
   /**
-   * Initialize this LevelDB data provider. This creates the database instance and the
+   * Initialize this Enmap data provider. This creates the database instance and the
    * database files inside the location specified.
-   * @returns A promise that resolves this LevelDB data provider once it's ready.
-   * @emits `client#dataProviderInit`
+   * @returns the data provider instance.
    */
-  public init(): Promise<this> {
+  public init(): this {
     if (this.db) {
-      return Promise.resolve(this);
+      return this;
     }
-
-    return new Promise((resolve, reject) => {
-      const db = new Level(this.location, { createIfMissing: true, valueEncoding: 'utf8' });
-      db.open((err?: any) => {
-        if (err) {
-          return reject(err);
-        }
-      });
-      this.db = db!;
-      return resolve(this);
+    this.db = new Enmap({
+      name: this.tableName,
+      autoFetch: true,
+      fetchAll: false, 
+      dataDir: this.location,
+      cloneLevel: 'deep',
     });
+    return this;
   }
 
   /**
-   * Gracefully destroy this LevelDB data provider. This closes the database connection.
+   * Gracefully destroy this Enmap data provider. This closes the database connection.
    * Once this is called, this data provider will be unusable.
    * @returns A promise that resolves once this data provider is destroyed.
-   * @emits `client#dataProviderDestroy`
    */
   public destroy(): Promise<void> {
     if (!this.db) {
       return Promise.resolve();
     }
 
-    return new Promise((resolve, reject) => {
-      this.db!.close((error?: any) => {
-        if (error) {
-          return reject(error);
-        }
-
-        this.db = null;
-        return resolve();
-      });
-    });
+    return this.db!.close();
   }
 
   /**
@@ -83,31 +78,16 @@ class DataProvider {
    * @returns A promise that resolves the queried data.
    */
   private async _get(key: string, defaultValue?: string): Promise<any> {
-    try {
-      const value = await this.db!.get(key);
-      try {
-        const valueType = Object.prototype.toString.call(JSON.parse(value));
-        if (valueType === '[object Object]' || valueType === '[object Array]') {
-          return JSON.parse(value);
-        } else {
-          return value;
-        }
-      } catch (e) {
-        return value;
-      }
-
-    } catch (error: any) {
-      if (error.notFound) {
-        return defaultValue;
-      }
-
-      throw error;
+    if (this.db!.has(key)) {
+      return this.db!.get(key);
+    } else {
+      return defaultValue;
     }
   }
 
   /**
    * Get a value for a key in a guild.
-   * @param guild The [guild](https://discord.js.org/#/docs/discord.js/stable/class/Guild) for which the data will be queried.
+   * @param guild The [guild](https://discord.js.org/#/docs/discord.js/stable/class/Guild) for which the data will be queried, or a guild ID.
    * @param key The key of the data to be queried.
    * @param defaultValue The default value in case there is no entry found.
    * @returns A promise that resolves the queried data.
@@ -128,14 +108,11 @@ class DataProvider {
   }
 
   public async getAllKeys(): Promise<any[]> {
-    return this.db!.keys({ limit: 10 }).all();
+    return Array.from(this.db!.keys());
   }
 
   private async _set(key: string, value: any): Promise<any> {
-    if (typeof value === 'object') {
-      value = JSON.stringify(value);
-    }
-    await this.db!.put(key, value);
+    return this.db!.set(key, value);
   }
 
   /**
@@ -168,7 +145,7 @@ class DataProvider {
    */
   private async _delete(key: string): Promise<any> {
     const data = await this._get(key, undefined);
-    await this.db!.del(key);
+    this.db!.delete(key);
 
     return data;
   }
@@ -200,10 +177,7 @@ class DataProvider {
    * @returns A promise that resolves once all data has been deleted.
    */
   public async _clear(startsWith: string): Promise<void> {
-    await this.db!.clear({
-      gt: `${startsWith}:`,
-      lte: `${startsWith}${String.fromCharCode(':'.charCodeAt(0) + 1)}`,
-    });
+    this.db!.sweep(m => m.key.startsWith(startsWith));
   }
 
   /**

@@ -2,7 +2,7 @@ import { IGuild } from '../model/guild.js';
 import { config } from '../../utils/config.js';
 import DataProvider from './data-provider.js';
 
-export const GuildDataProvider = new DataProvider('data/guilds.leveldb');
+export const GuildDataProvider = new DataProvider('data/', 'guilds');
 await GuildDataProvider.init();
 
 export class GuildService {

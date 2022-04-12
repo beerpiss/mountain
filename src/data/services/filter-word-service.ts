@@ -2,7 +2,7 @@ import { IFilterWord } from '../model/filterword.js';
 import { config } from '../../utils/config.js';
 import DataProvider from './data-provider.js';
 
-const FilterWordDataProvider = new DataProvider('data/filterwords.leveldb');
+const FilterWordDataProvider = new DataProvider('data/', 'filterwords');
 await FilterWordDataProvider.init();
 
 export class FilterWordService {

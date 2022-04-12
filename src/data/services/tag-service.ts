@@ -2,8 +2,8 @@ import { ITag } from '../model/tag.js';
 import { config } from '../../utils/config.js';
 import DataProvider from './data-provider.js';
 
-const TagDataProvider = new DataProvider('data/tags.leveldb');
-await TagDataProvider.init();
+const TagDataProvider = new DataProvider('data/', 'tags');
+TagDataProvider.init();
 
 export class TagService {
   static async addTag(tag: ITag) {

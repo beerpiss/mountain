@@ -149,7 +149,8 @@ dist
 build/
 
 # Database
-./data/
+data/
+!src/data/
 
 # Configuration (INCLUDES TOKEN!)
 config*.json

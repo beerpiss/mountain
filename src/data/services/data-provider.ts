@@ -167,7 +167,7 @@ class DataProvider {
    * @returns A promise that resolves once the data has been deleted.
    */
   private async _delete(key: string): Promise<any> {
-    const data = JSON.parse(await this.db!.get(key));
+    const data = await this._get(key, undefined);
     await this.db!.del(key);
 
     return data;

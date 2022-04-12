@@ -3,7 +3,7 @@
         "target": "esnext",
         "module": "esnext",
         "outDir": "build",
-        "rootDir": ".",
+        "rootDir": "src",
         "strict": true,
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
@@ -11,7 +11,7 @@
         "emitDecoratorMetadata": true,
         "skipLibCheck": false,
         "forceConsistentCasingInFileNames": true,
-        "baseUrl": "src/",
+        "baseUrl": "src",
         "esModuleInterop": true
     },
     "include": ["src", "src/index.ts"],

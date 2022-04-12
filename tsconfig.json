@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "outDir": "build",
+        "rootDir": ".",
+        "strict": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "skipLibCheck": false,
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": "src/",
+        "esModuleInterop": true
+    },
+    "include": ["src", "src/index.ts"],
+}

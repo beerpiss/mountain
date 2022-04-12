@@ -1,0 +1,12 @@
+{
+  "bot": {
+    "token": "",
+    "owner": ""
+  },
+  "guild": {
+    "id": "",
+    "welcomeChannel": "",
+    "welcomeMessage": "",
+    "goodbyeMessage": ""
+  }
+}

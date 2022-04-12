@@ -3,15 +3,16 @@ import { config } from '../../utils/config.js';
 import DataProvider from './data-provider.js';
 
 export const GuildDataProvider = new DataProvider('data/', 'guilds');
-await GuildDataProvider.init();
 
 export class GuildService {
+  public static provider = GuildDataProvider.init();
+
   static async get(key: keyof IGuild, defaultValue: any = undefined): Promise<any> {
-    return GuildDataProvider.get(config.guild.id, key, defaultValue);
+    return this.provider.get(config.guild.id, key, defaultValue);
   }
 
   static async set(key: keyof IGuild, value: any): Promise<void> {
-    return GuildDataProvider.set(config.guild.id, key, value);
+    return this.provider.set(config.guild.id, key, value);
   }
 
   static async setLoggingMapping(channelID: string | number, webhook: string) {

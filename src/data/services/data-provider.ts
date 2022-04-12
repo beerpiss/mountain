@@ -26,7 +26,7 @@ class DataProvider {
    * @type {(Enmap<string, any> | null)}
    * @memberof DataProvider
    */
-  private db: Enmap<string, any> | null;
+  public db: Enmap<string, any> | null;
 
   /**
    * @param {string} location The directory where the Enmap database will be stored. This must resolve to a directory.
@@ -107,8 +107,23 @@ class DataProvider {
     return this._get(`global:${key}`, defaultValue);
   }
 
-  public async getAllKeys(): Promise<any[]> {
-    return Array.from(this.db!.keys());
+  /**
+   * Really stupid hack to get all keys for a scope. This will temporarily loads the
+   * entire database into memory, so it can actually acquire all the keys.
+   * 
+   * Keys that were not loaded before will be evicted after this function finishes.
+   * 
+   * Call this function with no arguments to actually get every key in the table.
+   * 
+   * @param {Discord.Guild | string | 'global'} scope The scope to get all keys for.
+   * @returns {any[]} An array of all keys in the scope.
+   */
+  public getAllKeys(scope: Discord.Guild | string | 'global' | '' = ''): any[] {
+    const cachedKeys = this.db!.keyArray();
+    this.db!.fetchEverything();
+    const keys = this.db!.keyArray();
+    this.db!.evict(keys.filter(n => !cachedKeys.includes(n)));
+    return keys.filter(n => n.startsWith(scope instanceof Discord.Guild ? scope.id : scope));
   }
 
   private async _set(key: string, value: any): Promise<any> {

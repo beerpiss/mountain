@@ -9,7 +9,7 @@ export enum CommandEphemeralType {
   DEFAULT = 'DEFAULT',
 }
 
-export async function shouldSendEphemerally(interaction: CommandInteraction, level: CommandEphemeralType, role: keyof IGuild = 'roleFormerBcn'): Promise<Boolean> {
+export async function shouldSendEphemerally(interaction: CommandInteraction, level: CommandEphemeralType, role: keyof IGuild = 'roleFormerBcn'): Promise<boolean> {
   switch (level) {
     case CommandEphemeralType.ALWAYS:
       return true;

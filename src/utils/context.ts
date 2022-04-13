@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/named
-import { TextBasedChannel, CommandInteraction, Guild, GuildMember, InteractionReplyOptions, Message, MessagePayload, WebhookEditMessageOptions, MessageEmbedOptions } from 'discord.js';
+import { TextBasedChannel, CommandInteraction, Guild, GuildMember, InteractionReplyOptions, Message, MessagePayload, WebhookEditMessageOptions, MessageEmbedOptions, User, ButtonInteraction } from 'discord.js';
+import { UndefinedPromptError, TimeoutError } from './exceptions.js';
 
 export interface MountainMessagePayload extends InteractionReplyOptions {
   followup?: boolean;
@@ -8,13 +9,13 @@ export interface MountainMessagePayload extends InteractionReplyOptions {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class MountainContext {
-  public readonly interaction: CommandInteraction;
+  public readonly interaction: CommandInteraction | ButtonInteraction;
 
   public whisper: boolean;
 
-  constructor(interaction: CommandInteraction) {
+  constructor(interaction: CommandInteraction | ButtonInteraction, whisper: boolean = false) {
     this.interaction = interaction;
-    this.whisper = false;
+    this.whisper = whisper;
   }
 
   public get guild(): Guild | null {
@@ -29,8 +30,12 @@ export class MountainContext {
     return <GuildMember> this.interaction.member;
   }
 
+  public get user(): User | null {
+    return <User> this.interaction.member?.user;
+  }
+
   public async respond(options: string | MessagePayload | InteractionReplyOptions) {
-    if (await this.interaction.fetchReply()) {
+    if (this.interaction.replied || this.interaction.deferred) {
       return this.interaction.followUp(options);
     } else {
       return this.interaction.reply(options);
@@ -38,6 +43,7 @@ export class MountainContext {
   }
 
   public async defer(options?: InteractionReplyOptions) {
+    options = Object.assign(options ?? {}, { ephemeral: this.whisper });
     return this.interaction.deferReply(options);
   }
 
@@ -58,7 +64,7 @@ export class MountainContext {
   }
 
   public async respondOrEdit(options: MountainMessagePayload) {
-    if (this.interaction.replied) {
+    if (this.interaction.replied || this.interaction.deferred) {
       if (!options.followup) {
         const ephemeral = options.ephemeral;
         const deleteAfter = options.deleteAfter;
@@ -109,7 +115,7 @@ export class MountainContext {
       description: description,
       color: 'DARK_GREEN',
     };
-    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter });
+    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter, ephemeral: this.whisper });
   }
 
   public async sendWarning(description: string, title?: string, deleteAfter?: number) {
@@ -118,7 +124,7 @@ export class MountainContext {
       description: description,
       color: 'ORANGE',
     };
-    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter });
+    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter, ephemeral: this.whisper });
   }
 
   public async sendError(description: string, title?: string, deleteAfter?: number) {
@@ -127,6 +133,34 @@ export class MountainContext {
       description: description,
       color: 'RED',
     };
-    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter });
+    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter, ephemeral: this.whisper });
+  }
+
+  public async sendInfo(description: string, title?: string, deleteAfter?: number) {
+    const embed: MessageEmbedOptions = {
+      title: title || '',
+      description: description,
+      color: 'BLUE',
+    };
+    await this.respondOrEdit({ embeds: [embed], deleteAfter: deleteAfter, ephemeral: this.whisper });
+  }
+
+  public async prompt(time: string | number) {
+    try {
+      const collected = await this.interaction.channel?.awaitMessages({ 
+        max: 1, 
+        time: Number(time), 
+        filter: (m: Message) => m.author.id === this.interaction.member?.user.id,
+        errors: ['time'],
+      });
+      if (collected?.first()?.content === undefined) {
+        throw new UndefinedPromptError('Prompt bị undefined?!');
+      }
+      const message = collected.first();
+      collected.first()?.delete();
+      return message?.content;
+    } catch (e) {
+      throw new TimeoutError('Đã hủy do quá thời gian chờ.');
+    }
   }
 }

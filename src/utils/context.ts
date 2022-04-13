@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/named
-import { TextBasedChannel, CommandInteraction, Guild, GuildMember, InteractionReplyOptions, Message, MessagePayload, WebhookEditMessageOptions, MessageEmbedOptions, User, ButtonInteraction } from 'discord.js';
+import { TextBasedChannel, Guild, GuildMember, InteractionReplyOptions, Message, MessagePayload, WebhookEditMessageOptions, MessageEmbedOptions, User, BaseCommandInteraction, ButtonInteraction } from 'discord.js';
 import { UndefinedPromptError, TimeoutError } from './exceptions.js';
 
 export interface MountainMessagePayload extends InteractionReplyOptions {
@@ -9,11 +9,11 @@ export interface MountainMessagePayload extends InteractionReplyOptions {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class MountainContext {
-  public readonly interaction: CommandInteraction | ButtonInteraction;
+  public readonly interaction: BaseCommandInteraction | ButtonInteraction;
 
   public whisper: boolean;
 
-  constructor(interaction: CommandInteraction | ButtonInteraction, whisper: boolean = false) {
+  constructor(interaction: BaseCommandInteraction | ButtonInteraction, whisper: boolean = false) {
     this.interaction = interaction;
     this.whisper = whisper;
   }

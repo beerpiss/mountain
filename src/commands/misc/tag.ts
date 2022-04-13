@@ -1,10 +1,9 @@
-import { Discord, Guild, Slash, SlashOption, Permission, SlashGroup } from 'discordx';
+import { Discord, Slash, SlashOption, Permission, SlashGroup, Guard, Client } from 'discordx';
 import { CommandInteraction, MessageAttachment, MessageEmbedOptions } from 'discord.js';
-import { config } from '../../utils/config.js';
 import { TagService } from '../../data/services/tag-service.js';
 import { ITag } from '../../data/model/tag.js';
 import { BadArgumentError, UndefinedPromptError, TimeoutError } from '../../utils/exceptions.js';
-import { allowRoleAndUp, shouldSendEphemerally, CommandEphemeralType } from '../../utils/permissions.js';
+import { allowRoleAndUp, whisper } from '../../utils/permissions.js';
 import { tagAutocompleter } from '../../utils/autocompleters.js';
 import { MountainContext } from '../../utils/context.js';
 import { dataUriToBuffer } from 'data-uri-to-buffer';
@@ -12,7 +11,6 @@ import axios from 'axios';
 
 @Discord()
 @SlashGroup({ name: 'tag' })
-@Guild(<string>config.guild.id)
 export class Tag {
   private async prepareEmbed(tag: ITag): Promise<[MessageEmbedOptions, MessageAttachment | null]> {
     let embed: MessageEmbedOptions = {
@@ -71,10 +69,13 @@ export class Tag {
 
   @Slash('list')
   @SlashGroup('tag')
+  @Guard(whisper)
   async list(
     interaction: CommandInteraction,
+    _: Client,
+    guardData: any,
   ): Promise<void> {
-    const ctx = new MountainContext(interaction, await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn'));
+    const ctx = new MountainContext(interaction, guardData.whisper);
     await ctx.defer();
     const tagNames = await TagService.getAllTagNames() ?? [];
     ctx.sendInfo(tagNames.join(', '), 'Tags');
@@ -82,15 +83,19 @@ export class Tag {
 
   @Slash('delete')
   @SlashGroup('tag')
+  @Guard(whisper)
   @Permission(async (guild, message) => allowRoleAndUp(guild, message, 'roleFormerBcn'))
   async delete(
     @SlashOption('name', { 
       description: 'Tag muốn xóa',
       autocomplete: tagAutocompleter,
       type: 'STRING',
-    }) name: string,    interaction: CommandInteraction,
+    }) name: string,    
+      interaction: CommandInteraction,
+      _: Client,
+      guardData: any,
   ): Promise<void> {
-    const ctx = new MountainContext(interaction, await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn'));
+    const ctx = new MountainContext(interaction, guardData.whisper);
     await ctx.defer();
     const tag: ITag | undefined = await TagService.getTag(name);
     if (tag === undefined) {
@@ -109,7 +114,7 @@ export class Tag {
       @SlashOption('image', { description: 'Link ảnh đính kèm tag', required: false  }) image: string,
       interaction: CommandInteraction,
   ): Promise<void> {
-    const ctx = new MountainContext(interaction, await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn'));
+    const ctx = new MountainContext(interaction, false);
     await ctx.defer();
     if (!name.match(/^[a-zA-Z0-9_]+$/)) {
       throw new BadArgumentError('Tên tag không hợp lệ. Tên tag chỉ được có ký tự `a-z, A-Z, 0-9 và _`.');
@@ -167,7 +172,7 @@ export class Tag {
       @SlashOption('image', { description: 'Link ảnh đính kèm tag', required: false  }) image: string,
       interaction: CommandInteraction,
   ): Promise<void> {
-    const ctx = new MountainContext(interaction, await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn'));
+    const ctx = new MountainContext(interaction, false);
     await ctx.defer();
     if (!name.match(/^[a-zA-Z0-9_]+$/)) {
       throw new BadArgumentError('Tên tag không hợp lệ. Tên tag chỉ được có ký tự `a-z, A-Z, 0-9 và _`.');
@@ -216,11 +221,12 @@ export class Tag {
     }) name: string,
       interaction: CommandInteraction,
   ): Promise<void> {
-    await interaction.deferReply({ ephemeral: Boolean(await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn')) });
+    const ctx = new MountainContext(interaction, true);
+    await ctx.defer();
     const tag = await TagService.getTag(name, false);
     if (tag === undefined) {
       throw new BadArgumentError('Tag này không tồn tại! Dùng /addtag để thêm tag.');
     }
-    interaction.editReply(`\`\`\`\n${tag.content}\n\`\`\``);
+    ctx.edit(`\`\`\`md\n${tag.content}\n\`\`\``);
   }
 }

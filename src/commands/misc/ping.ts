@@ -1,24 +1,25 @@
-import { Discord, Guild, Slash } from 'discordx';
+import { Discord, Slash, Client, Guard } from 'discordx';
 import { CommandInteraction, MessageEmbedOptions } from 'discord.js';
-import { config } from '../../utils/config.js';
-import { shouldSendEphemerally, CommandEphemeralType } from '../../utils/permissions.js';
+import { whisper } from '../../utils/permissions.js';
+import { MountainContext } from '../../utils/context.js';
 
 @Discord()
 export class Ping {
   @Slash('ping')
-  @Guild(<string>config.guild.id)
-  async ping(interaction: CommandInteraction): Promise<void> {
-    let embed: MessageEmbedOptions = {
-      title: 'Pong!',
-      description: 'Đang đo ping...',
-      color: 'BLURPLE',
-    };
-    const timeStart: number = new Date().getTime();
-    await interaction.reply({ embeds: [embed], ephemeral: Boolean(await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT)) });
+  @Guard(whisper)
+  async ping(
+    interaction: CommandInteraction,
+    _: Client,
+    guardData: any,
+  ): Promise<void> {
+    const ctx = new MountainContext(interaction, guardData.whisper);
 
+    const timeStart: number = new Date().getTime();
+    await ctx.sendInfo('Đang đo ping...', 'Pong!');
     const ping: number = Math.round(new Date().getTime() - timeStart);
-    embed = Object.assign(embed, {
-      description: '',
+    
+    const embed: MessageEmbedOptions = {
+      title: 'Pong!',
       fields: [
         {
           name: 'Ping tin nhắn',
@@ -31,7 +32,8 @@ export class Ping {
           inline: true,
         },
       ],
-    });
-    await interaction.editReply({ embeds: [embed] });
+      color: 'BLUE',
+    };
+    await ctx.edit({ embeds: [embed] });
   }
 }

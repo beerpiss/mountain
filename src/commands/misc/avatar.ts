@@ -1,7 +1,6 @@
-import { ButtonComponent, Discord, Guild, Slash, SlashOption } from 'discordx';
+import { ButtonComponent, Client, Discord, Guard, Slash, SlashOption } from 'discordx';
 import { CommandInteraction, MessageEmbedOptions, GuildMember, ButtonInteraction, MessageButton, MessageActionRow, WebhookEditMessageOptions } from 'discord.js';
-import { config } from '../../utils/config.js';
-import { shouldSendEphemerally, CommandEphemeralType } from '../../utils/permissions.js';
+import { whisper } from '../../utils/permissions.js';
 import { MountainContext } from '../../utils/context.js';
 
 @Discord()
@@ -9,15 +8,17 @@ export class Avatar {
   private other: boolean = false;
 
   @Slash('avatar')
-  @Guild(<string>config.guild.id)
+  @Guard(whisper)
   async avatar(
     @SlashOption('user', { description: 'Người muốn lấy avatar', type: 'USER', required: false }) member: GuildMember,
       interaction: CommandInteraction,
+      _: Client,
+      guardData: any,
   ): Promise<void> {
     if (!member) {
       member = <GuildMember>interaction.member;
     }
-    const ctx = new MountainContext(interaction, await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn'));
+    const ctx = new MountainContext(interaction, guardData.whisper);
     await ctx.defer();
     const button = new MessageButton()
       .setLabel('View other')

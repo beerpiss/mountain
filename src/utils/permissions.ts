@@ -36,3 +36,13 @@ export async function allowRoleAndUp(guild: Guild, message: ApplicationCommandMi
     return { id: value.id, permission: value.comparePositionTo(roleID) >= 0, type: 'ROLE' };
   });
 }
+
+export async function alwaysWhisper(_: any, __: any, next: Function, guardData: { whisper: boolean } ): Promise<void> {
+  guardData.whisper = true;
+  await next();
+}
+
+export async function whisper(interaction: CommandInteraction, __: any, next: Function, guardData: { whisper: boolean }): Promise<void> {
+  guardData.whisper = await shouldSendEphemerally(interaction, CommandEphemeralType.DEFAULT, 'roleFormerBcn');
+  await next();
+}

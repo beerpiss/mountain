@@ -1,37 +1,41 @@
-import { Discord, Guild, Slash, SlashOption } from 'discordx';
+import { Client, Discord, Guard, Slash, SlashOption } from 'discordx';
 import { CommandInteraction, GuildMember } from 'discord.js';
 import { timeparse } from '@beerpsi/timeparse';
-import { config } from '../../utils/config.js';
+import { whisper } from '../../utils/permissions.js';
+import { MountainContext } from '../../utils/context.js';
 
 @Discord()
 export class SelfDestructCommands {
   @Slash('selfdestruct', { description: 'Tự hủy' })
-  @Guild(config.guild.id)
+  @Guard(whisper)
   async selfmute(
     @SlashOption('time', { description: 'Thời gian muốn tự hủy', type: 'STRING' }) time: string,
       interaction: CommandInteraction,
+      _: Client,
+      guardData: any,
   ): Promise<void> {
-    await interaction.deferReply({ ephemeral: true });
+    const ctx = new MountainContext(interaction, guardData.whisper);
+    await ctx.defer();
     const muteTime: number | undefined = (timeparse(time) ?? 0) * 1000;
     if (muteTime === undefined || muteTime < 1000) {
-      interaction.editReply('Thời gian không hợp lệ!');
+      ctx.sendError('Thời gian không hợp lệ!');
       return;
     }
     if (muteTime > 28 * 86400 * 1000) {
-      interaction.editReply('Thời gian tối đa là 28 ngày!');
+      ctx.sendError('Thời gian tối đa là 28 ngày!');
       return;
     }
     if (interaction.member instanceof GuildMember) {
       try {
         await interaction.member.timeout(muteTime, 'đòi tự hủy');
-        interaction.editReply('Đã tự hủy!');
+        ctx.sendSuccess('Đã tự hủy!');
       } catch (e: any) {
         if (e.message === 'Missing Permissions') {
-          interaction.editReply('cung manh :+1:');
+          ctx.sendError('cung manh :+1:');
         } else throw e;
       }
     } else {
-      interaction.editReply('Không thể tự hủy!');
+      ctx.sendError('Không thể tự hủy!');
     }
   }
 }

@@ -1,7 +1,7 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { parse, HTMLElement } from 'node-html-parser';
 import { existsSync, mkdirSync, writeFile } from 'fs';
 import axios from 'axios';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { HTMLElement, parse } from 'node-html-parser';
 
 const EMOJI_CHARACTER_CELL_INDEX: number = 2;
 const UNICODE_FULL_EMOJI_LIST: string = 'https://unicode.org/emoji/charts/full-emoji-list.html';
@@ -39,17 +39,33 @@ async function parseTableRow(tableRow: HTMLElement, variant: EmojiVariant): Prom
   }
 }
 
-async function scrapeEmojis(variant: EmojiVariant): Promise<{ [key: string]: string; }> {
-  const resp = await axios.get(UNICODE_FULL_EMOJI_LIST, {
-    onDownloadProgress: (progressEvent) => {
-      process.stdout.write(`Fetching website: ${Math.round((progressEvent.loaded * 100) / progressEvent.total)} of ${progressEvent.lengthComputable}\r`);
-    },
+async function fetchUnicodeWebsite(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    axios.get(UNICODE_FULL_EMOJI_LIST, {
+      responseType: 'stream',
+    })
+      .then(resp => {
+        const length = Number(resp.headers['content-length']);
+        const chunks: any[] = [];
+        let fetched: number = 0;
+        resp.data.on('data', (chunk: any) => {
+          fetched += chunk.length;
+          process.stdout.write(`Fetching emoji table... ${(fetched / length * 100).toFixed(2)}% of ${(length / 1000000).toFixed(2)}MB\r`);
+          chunks.push(Buffer.from(chunk));
+        });
+        resp.data.on('end', () => {
+          resolve(Buffer.concat(chunks).toString('utf8'));
+        });
+        resp.data.on('error', (err: any) => {
+          reject(err);
+        });
+      });
   });
-  console.log('');
-  if (resp.status !== 200) {
-    throw new Error(`Could not fetch ${UNICODE_FULL_EMOJI_LIST}. Do you have Internet?`);
-  }
-  const root: HTMLElement = parse(resp.data);
+}
+
+async function scrapeEmojis(variant: EmojiVariant): Promise<{ [key: string]: string; }> {
+  const resp = await fetchUnicodeWebsite();
+  const root: HTMLElement = parse(resp);
   const table = root.querySelector('table');
   if (!table) {
     throw new Error('broken code!');
@@ -65,7 +81,7 @@ async function scrapeEmojis(variant: EmojiVariant): Promise<{ [key: string]: str
   if (!existsSync('./data')) {
     mkdirSync('./data');
   }
-  writeFile('data/emojis.json', JSON.stringify(emojiTable), {}, (err: any) => {
+  writeFile('data/emojis.json', JSON.stringify(emojiTable).replace(/[\u007F-\uFFFF]/g, (chr) => `\\u${('0000' + chr.charCodeAt(0).toString(16)).slice(-4)}`), {}, (err: any) => {
     if (err) { console.log(err); }
   });
 })();

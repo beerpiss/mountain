@@ -1,11 +1,12 @@
-import { ButtonComponent, Client, Discord, Guard, Slash, SlashOption, Permission } from 'discordx';
-import { CommandInteraction, MessageEmbedOptions, GuildMember, ButtonInteraction, MessageButton, MessageActionRow, WebhookEditMessageOptions, MessageAttachment } from 'discord.js';
-import { whisper, allowRoleAndUp } from '../../utils/permissions.js';
-import { MountainContext } from '../../utils/context.js';
-import { BadArgumentError } from '../../utils/exceptions.js';
 import { readFileSync } from 'fs';
 import { dataUriToBuffer } from 'data-uri-to-buffer';
+import type { ButtonInteraction, CommandInteraction, GuildMember, MessageEmbedOptions, WebhookEditMessageOptions } from 'discord.js';
+import { MessageActionRow, MessageAttachment, MessageButton } from 'discord.js';
+import { ButtonComponent, Client, Discord, Guard, Permission, Slash, SlashOption } from 'discordx';
 
+import { MountainContext } from '../../utils/context.js';
+import { BadArgumentError } from '../../utils/exceptions.js';
+import { allowRoleAndUp, whisper } from '../../utils/permissions.js';
 @Discord()
 export class Misc {
   @Slash('ping')
@@ -170,16 +171,24 @@ export class Jumbo {
     @SlashOption('emoji', { description: 'Emoji muốn phóng to' }) emoji: string,
       interaction: CommandInteraction,
   ): Promise<void> {
-    const ctx = new MountainContext(interaction, false);
+    const ctx = new MountainContext(interaction, true);
     const emojiObj = emoji.match(/<(?<animated>a?):(?<name>[a-zA-Z0-9\_]{1,32}):(?<id>[0-9]{15,20})>/g);
     if (emojiObj?.[0] === emoji) {
       const animated = Boolean(emojiObj.groups?.animated);
       const id = emojiObj.groups?.id;
+      if (!id) {
+        await ctx.sendError('Không thể phóng emoji này.');
+        return;
+      }
       ctx.respond(`https://cdn.discordapp.com/emojis/${id}.${animated ? 'gif' : 'png'}?v=1`);
     } else {
-      const decoded = dataUriToBuffer(Jumbo.unicodeEmojis[emoji]); 
-      const file = new MessageAttachment(decoded, decoded.type.replace('/', '.'));
-      ctx.respond({ files: [file] });
+      try {
+        const decoded = dataUriToBuffer(Jumbo.unicodeEmojis[emoji]); 
+        const file = new MessageAttachment(decoded, decoded.type.replace('/', '.'));
+        ctx.respond({ files: [file] });
+      } catch (e) {
+        await ctx.sendError('Tôi không biết có emoji này luôn! Có thể emoji này quá mới.');
+      }
     }
   }
 }

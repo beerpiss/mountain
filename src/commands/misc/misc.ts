@@ -1,8 +1,10 @@
 import { ButtonComponent, Client, Discord, Guard, Slash, SlashOption, Permission } from 'discordx';
-import { CommandInteraction, MessageEmbedOptions, GuildMember, ButtonInteraction, MessageButton, MessageActionRow, WebhookEditMessageOptions } from 'discord.js';
+import { CommandInteraction, MessageEmbedOptions, GuildMember, ButtonInteraction, MessageButton, MessageActionRow, WebhookEditMessageOptions, MessageAttachment } from 'discord.js';
 import { whisper, allowRoleAndUp } from '../../utils/permissions.js';
 import { MountainContext } from '../../utils/context.js';
 import { BadArgumentError } from '../../utils/exceptions.js';
+import { readFileSync } from 'fs';
+import { dataUriToBuffer } from 'data-uri-to-buffer';
 
 @Discord()
 export class Misc {
@@ -15,9 +17,9 @@ export class Misc {
   ): Promise<void> {
     const ctx = new MountainContext(interaction, guardData.whisper);
 
-    const timeStart: number = new Date().getTime();
+    const timeStart: number = performance.now();
     await ctx.sendInfo('Đang đo ping...', 'Pong!');
-    const ping: number = Math.round(new Date().getTime() - timeStart);
+    const ping: number = Math.round(performance.now() - timeStart);
     
     const embed: MessageEmbedOptions = {
       title: 'Pong!',
@@ -89,23 +91,6 @@ export class Misc {
     }
     ctx.channel?.send(text);
   }
-
-  @Slash('jumbo', { description: 'Phóng to emoji' })
-  async jumbo(
-    @SlashOption('emoji', { description: 'Emoji muốn phóng to' }) emoji: string,
-      interaction: CommandInteraction,
-  ): Promise<void> {
-    const ctx = new MountainContext(interaction, false);
-    await ctx.defer();
-    const emojiObj = emoji.match(/<(?<animated>a?):(?<name>[a-zA-Z0-9\_]{1,32}):(?<id>[0-9]{15,20})>/g);
-    if (emojiObj?.[0] === emoji) {
-      const animated = Boolean(emojiObj.groups?.animated);
-      const id = emojiObj.groups?.id;
-      ctx.edit(`https://cdn.discordapp.com/emojis/${id}.${animated ? 'gif' : 'png'}?v=1`);
-    } else {
-      throw new BadArgumentError('Không thể phóng to emoji này, chắc đây là emoji Unicode.');
-    }
-  }
 }
 
 @Discord()
@@ -172,6 +157,29 @@ export class Avatar {
         },
       };
       ctx.edit({ embeds: [embed] });
+    }
+  }
+}
+
+@Discord()
+export class Jumbo {
+  private static unicodeEmojis = JSON.parse(readFileSync('data/emojis.json').toString());
+
+  @Slash('jumbo', { description: 'Phóng to emoji' })
+  async jumbo(
+    @SlashOption('emoji', { description: 'Emoji muốn phóng to' }) emoji: string,
+      interaction: CommandInteraction,
+  ): Promise<void> {
+    const ctx = new MountainContext(interaction, false);
+    const emojiObj = emoji.match(/<(?<animated>a?):(?<name>[a-zA-Z0-9\_]{1,32}):(?<id>[0-9]{15,20})>/g);
+    if (emojiObj?.[0] === emoji) {
+      const animated = Boolean(emojiObj.groups?.animated);
+      const id = emojiObj.groups?.id;
+      ctx.respond(`https://cdn.discordapp.com/emojis/${id}.${animated ? 'gif' : 'png'}?v=1`);
+    } else {
+      const decoded = dataUriToBuffer(Jumbo.unicodeEmojis[emoji]); 
+      const file = new MessageAttachment(decoded, decoded.type.replace('/', '.'));
+      ctx.respond({ files: [file] });
     }
   }
 }

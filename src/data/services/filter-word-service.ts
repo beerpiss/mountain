@@ -1,5 +1,5 @@
-import { IFilterWord } from '../model/filterword.js';
 import { config } from '../../utils/config.js';
+import { IFilterWord } from '../model/filterword.js';
 import DataProvider from './data-provider.js';
 
 const FilterWordDataProvider = new DataProvider('data/', 'filterwords');

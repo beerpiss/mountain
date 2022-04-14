@@ -1,6 +1,6 @@
 import { client } from '../utils/client.js';
-import { BadArgumentError } from '../utils/exceptions.js';
 import { MountainContext } from '../utils/context.js';
+import { BadArgumentError } from '../utils/exceptions.js';
 
 client.on('interactionCreate', async (interaction) => {
   try {

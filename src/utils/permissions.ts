@@ -1,7 +1,10 @@
-import { CommandInteraction, Guild, GuildMemberRoleManager, ApplicationCommandPermissions, Role } from 'discord.js';
-import { GuildService } from '../data/services/guild-service.js';
-import { IGuild } from '../data/model/guild.js';
+import {
+  ApplicationCommandPermissions, CommandInteraction, Guild, GuildMemberRoleManager, Role,
+} from 'discord.js';
 import { ApplicationCommandMixin, SimpleCommandMessage } from 'discordx';
+
+import { IGuild } from '../data/model/guild.js';
+import { GuildService } from '../data/services/guild-service.js';
 
 export enum CommandEphemeralType {
   ALWAYS = 'ALWAYS',

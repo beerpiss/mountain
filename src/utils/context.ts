@@ -1,6 +1,10 @@
 // eslint-disable-next-line import/named
-import { TextBasedChannel, Guild, GuildMember, InteractionReplyOptions, Message, MessagePayload, WebhookEditMessageOptions, MessageEmbedOptions, User, BaseCommandInteraction, ButtonInteraction } from 'discord.js';
-import { UndefinedPromptError, TimeoutError } from './exceptions.js';
+import {
+  BaseCommandInteraction, ButtonInteraction, Guild, GuildMember, InteractionReplyOptions, Message,
+  MessageEmbedOptions, MessagePayload, TextBasedChannel, User, WebhookEditMessageOptions,
+} from 'discord.js';
+
+import { TimeoutError, UndefinedPromptError } from './exceptions.js';
 
 export interface MountainMessagePayload extends InteractionReplyOptions {
   followup?: boolean;

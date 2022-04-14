@@ -1,5 +1,5 @@
-import Enmap from 'enmap';
 import Discord from 'discord.js';
+import Enmap from 'enmap';
 
 /**
  * A data provider implemented with Enmap. Requires [Enmap](https://github.com/eslachance/enmap).

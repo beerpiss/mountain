@@ -1,5 +1,5 @@
-import { ITag } from '../model/tag.js';
 import { config } from '../../utils/config.js';
+import { ITag } from '../model/tag.js';
 import DataProvider from './data-provider.js';
 
 const TagDataProvider = new DataProvider('data/', 'tags');

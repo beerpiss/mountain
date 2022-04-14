@@ -1,13 +1,14 @@
-import { Discord, Slash, SlashOption, Permission, SlashGroup, Guard, Client } from 'discordx';
+import axios from 'axios';
+import { dataUriToBuffer } from 'data-uri-to-buffer';
 import { CommandInteraction, MessageAttachment, MessageEmbedOptions } from 'discord.js';
-import { TagService } from '../../data/services/tag-service.js';
+import { Client, Discord, Guard, Permission, Slash, SlashGroup, SlashOption } from 'discordx';
+
 import { ITag } from '../../data/model/tag.js';
-import { BadArgumentError, UndefinedPromptError, TimeoutError } from '../../utils/exceptions.js';
-import { allowRoleAndUp, whisper } from '../../utils/permissions.js';
+import { TagService } from '../../data/services/tag-service.js';
 import { tagAutocompleter } from '../../utils/autocompleters.js';
 import { MountainContext } from '../../utils/context.js';
-import { dataUriToBuffer } from 'data-uri-to-buffer';
-import axios from 'axios';
+import { BadArgumentError, TimeoutError, UndefinedPromptError } from '../../utils/exceptions.js';
+import { allowRoleAndUp, whisper } from '../../utils/permissions.js';
 
 @Discord()
 @SlashGroup({ name: 'tag' })

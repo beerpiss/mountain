@@ -1,8 +1,9 @@
-import { Client, Discord, Guard, Slash, SlashOption } from 'discordx';
-import { CommandInteraction, GuildMember } from 'discord.js';
 import { timeparse } from '@beerpsi/timeparse';
-import { whisper } from '../../utils/permissions.js';
+import { CommandInteraction, GuildMember } from 'discord.js';
+import { Client, Discord, Guard, Slash, SlashOption } from 'discordx';
+
 import { MountainContext } from '../../utils/context.js';
+import { whisper } from '../../utils/permissions.js';
 
 @Discord()
 export class SelfDestructCommands {

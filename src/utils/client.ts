@@ -1,5 +1,6 @@
 import { Intents } from 'discord.js';
 import { Client } from 'discordx';
+
 import { config } from './config.js';
 
 export const client = new Client({

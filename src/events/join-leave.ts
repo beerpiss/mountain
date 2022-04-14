@@ -1,9 +1,9 @@
 import { TextBasedChannel } from 'discord.js';
-import { Discord, On } from 'discordx';
-import { client } from '../utils/client.js';
 import type { ArgsOf } from 'discordx';
-import { config } from '../utils/config.js';
+import { Discord, On } from 'discordx';
 
+import { client } from '../utils/client.js';
+import { config } from '../utils/config.js';
 @Discord()
 export class JoinLeaveMonitor {
   @On('guildMemberAdd')

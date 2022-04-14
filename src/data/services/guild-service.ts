@@ -1,5 +1,5 @@
-import { IGuild } from '../model/guild.js';
 import { config } from '../../utils/config.js';
+import { IGuild } from '../model/guild.js';
 import DataProvider from './data-provider.js';
 
 export const GuildDataProvider = new DataProvider('data/', 'guilds');

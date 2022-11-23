@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "mountain"
+version = "0.1.0"
+description = "A bot simulating the Vietnamese gameshow \"Đường lên đỉnh Olympia\""
+authors = ["beerpiss <lacvtg.a1.2023@gmail.com>"]
+license = "0BSD"
+
+[tool.poetry.dependencies]
+python = "~3.10"
+aiosqlite = "^0.17.0"
+"discord.py" = "^2.1.0"
+python-dotenv = "^0.21.0"
+pylightxl = "^1.60"
+Pillow = "^9.3.0"
+pyjion = "^2.0.0"
+
+[tool.poetry.dev-dependencies]
+black = "^22.10.0"
+isort = "^5.10.1"
+jishaku = "^2.5.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

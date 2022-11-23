@@ -1,5 +1,4 @@
-from typing import (TYPE_CHECKING, Callable, Concatenate, ParamSpec, TypeVar,
-                    Union)
+from typing import TYPE_CHECKING, Callable, Concatenate, ParamSpec, TypeVar, Union
 
 from discord.app_commands.commands import Coro, GroupT
 
